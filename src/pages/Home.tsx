@@ -5,20 +5,19 @@ import { GamePhase } from '../types/enums';
 import { Title } from '../components/Title';
 
 export default function Home() {
-
   const [roomCode, setRoomCode] = useState<string>('');
-  const { createRoom, joinRoomCode, phase, setPhase } = useGameState();
+  const { createRoom, joinRoomCode, phase } = useGameState();
 
-  let createRoomLabel = 'Create new room', joinRoomLabel = 'Join Room';
-  switch (phase)
-  {
+  let createRoomLabel = 'Create new room',
+    joinRoomLabel = 'Join Room';
+  switch (phase) {
     case GamePhase.CREATING_ROOM:
       createRoomLabel = 'Creating room...';
       break;
     case GamePhase.CREATING_FAILED:
-      createRoomLabel = "Failed !";
+      createRoomLabel = 'Failed !';
       setTimeout(() => {
-        createRoomLabel = 'Create new room'
+        createRoomLabel = 'Create new room';
       }, 2500);
       break;
     case GamePhase.JOINING_ROOM:
@@ -28,16 +27,15 @@ export default function Home() {
       joinRoomLabel = 'Joining failed !';
       break;
   }
-  
+
   const createRoomHandler = () => {
     createRoom();
-    setPhase(GamePhase.CREATING_ROOM);
-  }
+    
+  };
 
   const joinRoomHandler = () => {
     joinRoomCode(parseInt(roomCode));
-    setPhase(GamePhase.JOINING_ROOM);
-  }
+  };
 
   return (
     <Layout>

@@ -6,7 +6,7 @@ export enum GamePhase {
   JOINING_ROOM,
   JOINING_FAILED,
   CREATING_ROOM,
-  CREATING_FAILED
+  CREATING_FAILED,
 }
 
 export enum RoomCodeJoinState {
