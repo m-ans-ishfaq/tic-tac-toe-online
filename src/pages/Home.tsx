@@ -30,7 +30,6 @@ export default function Home() {
 
   const createRoomHandler = () => {
     createRoom();
-    
   };
 
   const joinRoomHandler = () => {

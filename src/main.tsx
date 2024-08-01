@@ -5,9 +5,9 @@ import './index.css';
 import { GameStateProvider } from './hooks/useGameState.tsx';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
+  // <React.StrictMode>
     <GameStateProvider>
       <App />
     </GameStateProvider>
-  </React.StrictMode>
+  // </React.StrictMode>
 );
