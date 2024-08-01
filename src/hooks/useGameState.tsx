@@ -1,6 +1,6 @@
 import { createContext, ReactNode, useContext, useState } from 'react';
 import { GamePhase, RoomCodeJoinState as RoomJoinResult } from '../types/enums';
-import { ref, set } from 'firebase/database';
+import { ref, remove, set } from 'firebase/database';
 import { rtDb } from '../firebase/app';
 
 interface IGameState {
@@ -68,6 +68,7 @@ export const GameStateProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const leaveRoom = async () => {
+    await remove(ref(rtDb, 'rooms/' + roomCode));
     _setRoomCode(undefined);
     _setPhase(GamePhase.IDLE);
   };
