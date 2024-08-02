@@ -18,7 +18,7 @@ export default function Lobby() {
         </p>
         <video
           className="max-w-80 my-4"
-          src="/videos/mr-bean-waiting.mp4"
+          src="/tic-tac-toe-online/videos/mr-bean-waiting.mp4"
           controls={false}
           autoPlay
           loop
