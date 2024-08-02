@@ -3,11 +3,10 @@ import {
   ReactNode,
   useContext,
   useState,
-  useEffect,
   useCallback,
 } from 'react';
 import { GamePhase } from '../types/enums';
-import { DataSnapshot, onValue, ref, remove, set } from 'firebase/database';
+import { onValue, ref, remove, set } from 'firebase/database';
 import { rtDb } from '../firebase/app';
 import { winningCombinations } from '../utils/tic-tac-toe';
 
@@ -31,11 +30,11 @@ const GameStateContext = createContext<IGameState>({
   phase: GamePhase.IDLE,
   turn: 1,
   board: [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  setTurn: async (turn: number) => {},
-  setBoard: async (turn: number, board: number[]) => {},
-  setGamePhase: async (phase: GamePhase) => {},
+  setTurn: async (_turn: number) => {},
+  setBoard: async (_turn: number, _board: number[]) => {},
+  setGamePhase: async (_phase: GamePhase) => {},
   createRoom: async () => {},
-  joinRoomCode: async (code: number) => {},
+  joinRoomCode: async (_code: number) => {},
   leaveRoom: async () => {},
 });
 
