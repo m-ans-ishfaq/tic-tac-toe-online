@@ -2,6 +2,7 @@ import { createContext, ReactNode, useContext, useState, useEffect, useCallback 
 import { GamePhase } from '../types/enums';
 import { DataSnapshot, onValue, ref, remove, set } from 'firebase/database';
 import { rtDb } from '../firebase/app';
+import { winningCombinations } from '../utils/tic-tac-toe';
 
 interface IGameState {
   roomCode?: number;
@@ -10,7 +11,7 @@ interface IGameState {
   turn: number;
   board: number[];
   setTurn: (turn: number) => Promise<any>;
-  setBoard: (board: number[]) => Promise<any>;
+  setBoard: (turn:number, board: number[]) => Promise<any>;
   setGamePhase: (phase: GamePhase) => Promise<any>;
   createRoom: () => Promise<any>;
   joinRoomCode: (code: number) => Promise<any>;
@@ -24,7 +25,7 @@ const GameStateContext = createContext<IGameState>({
   turn: 1,
   board: [0, 0, 0, 0, 0, 0, 0, 0, 0],
   setTurn: async (turn: number) => {},
-  setBoard: async (board: number[]) => {},
+  setBoard: async (turn:number, board: number[]) => {},
   setGamePhase: async (phase: GamePhase) => {},
   createRoom: async () => {},
   joinRoomCode: async (code: number) => {},
@@ -38,47 +39,71 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
   const [turn, _setTurn] = useState(1);
   const [board, _setBoard] = useState([0, 0, 0, 0, 0, 0, 0, 0, 0]);
 
-  const listenToUpdates = useCallback((snapshot: DataSnapshot) => {
-    const data = snapshot.val();
-    console.log("Player", player);
-    console.log("Data from snapshot", data);
-    console.log("Board from state", board);
+  const roomRef = ref(rtDb, 'rooms/' + roomCode);
 
-    // Update state based on data from snapshot
-    _setBoard((prevBoard) => {
-      console.log("Updating board from", prevBoard, "to", data.board);
-      return data.board;
-    });
-    _setTurn((prevTurn) => {
-      console.log("Updating turn from", prevTurn, "to", data.turn);
-      return data.turn;
-    });
-    _setPhase((prevPhase) => {
-      console.log("Updating phase from", prevPhase, "to", data.phase);
-      return data.phase;
-    });
-  }, [player, board, turn]);
+  const listenToUpdates = useCallback((player:number, data: any) => {
+    // if (data.updateBy == 2 && player == 1 && data.phase == GamePhase.PLAYING) {
+    //   _setPhase(GamePhase.PLAYING);
+    //   return;
+    // }
+    console.log("Data from snapshot by client ", data.updateBy, data);
+
+    const { phase, updateBy, board, turn } = data;
+
+    if (phase == GamePhase.WAITING) {
+      return;
+    }
+
+    if (updateBy == 2 && player == 1) {
+      _setBoard(board);
+      _setTurn(turn);
+      _setPhase(phase);
+    }
+    else if (updateBy == 1 && player == 2) {
+      _setBoard(board);
+      _setTurn(turn);
+      _setPhase(phase);
+    }
+
+    // Checking for tie
+    if (!board.includes(0)) {
+      _setPhase(GamePhase.TIE);
+      setPhase(GamePhase.TIE);
+    }
+
+    for (const combination of winningCombinations) {
+      const [a, b, c] = combination;
+      if (board[a] === board[b] && board[a] === board[c] && board[a] !== 0) {
+        if (board[a] == 1) {
+          _setPhase(GamePhase.PLAYER_1_WIN);
+          setPhase(GamePhase.PLAYER_1_WIN);
+        } else {
+          _setPhase(GamePhase.PLAYER_2_WIN);
+          setPhase(GamePhase.PLAYER_2_WIN);
+        }
+      }
+    }
+
+  }, [phase, player, board, turn]);
 
   async function setTurn(turn: number) {
     if (roomCode) {
-      const roomRef = ref(rtDb, 'rooms/' + roomCode + '/turn');
-      await set(roomRef, turn);
+      await set(roomRef, { phase, turn, board, updateBy: player });
       _setTurn(turn);
     }
   };
 
-  async function setBoard(newBoard: number[]) {
+  async function setBoard(turn:number, newBoard: number[]) {
     if (roomCode) {
-      const roomRef = ref(rtDb, 'rooms/' + roomCode + '/board');
-      await set(roomRef, newBoard);
+      await set(roomRef, { phase, turn, board: newBoard, updateBy: player });
       _setBoard(newBoard);
+      _setTurn(turn);
     }
   };
 
   async function setPhase(phase: GamePhase) {
     if (roomCode) {
-      const roomRef = ref(rtDb, 'rooms/' + roomCode + '/phase');
-      await set(roomRef, phase);
+      await set(roomRef, { phase, turn, board, updateBy: player });
       _setPhase(phase);
     }
   };
@@ -88,10 +113,12 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
     const newRoomCode = Math.floor(100000 + Math.random() * 900000);
     try {
       const roomRef = ref(rtDb, 'rooms/' + newRoomCode);
-      await set(roomRef, { phase: GamePhase.WAITING, turn, board });
+      await set(roomRef, { phase: GamePhase.WAITING, turn, board, updateBy: 1 });
       _setRoomCode(newRoomCode);
       setPlayer(1); // Set player to 1 here
-      onValue(roomRef, listenToUpdates);
+      onValue(roomRef, (snapshot) => {
+        listenToUpdates(1, snapshot.val());
+      });
       _setPhase(GamePhase.WAITING);
     } catch (err) {
       console.error(err);
@@ -105,12 +132,17 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
     try {
       const roomRef = ref(rtDb, 'rooms/' + code);
       onValue(roomRef, async (snapshot) => {
-        if (snapshot.exists()) {
-          setPlayer(2); // Set player to 2 here
-          _setPhase(GamePhase.PLAYING);
-          await set(roomRef, { phase: GamePhase.PLAYING, turn, board });
-          listenToUpdates(snapshot);
+        if (!snapshot.exists()) {
+          _setPhase(GamePhase.ROOM_NOT_FOUND);
+          return;
         }
+        const data = snapshot.val();
+        if (data.phase == GamePhase.WAITING) {
+          setPlayer(2);
+          _setPhase(GamePhase.PLAYING);
+          await set(roomRef, { phase: GamePhase.PLAYING, turn, board, updateBy: 2 });
+        }
+        listenToUpdates(2, data);
       });
     } catch (err) {
       console.error(err);
@@ -119,7 +151,7 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
 
   async function leaveRoom() {
     if (roomCode) {
-      await remove(ref(rtDb, 'rooms/' + roomCode));
+      await remove(roomRef);
       _setRoomCode(undefined);
       _setPhase(GamePhase.IDLE);
     }
