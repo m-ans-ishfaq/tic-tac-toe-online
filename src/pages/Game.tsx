@@ -12,12 +12,12 @@ export default function Game() {
     switch (cell) {
       case 1:
         cellBody = (
-          <img src="/images/check.png" alt="" className="w-full relative z-0" />
+          <img src="/tic-tac-toe-online/images/check.png" alt="" className="w-full relative z-0" />
         );
         break;
       case 2:
         cellBody = (
-          <img src="/images/cross.png" alt="" className="w-full relative z-0" />
+          <img src="/tic-tac-toe-online/images/cross.png" alt="" className="w-full relative z-0" />
         );
         break;
     }
@@ -71,7 +71,7 @@ export default function Game() {
         </p>
       </div>
       <div className="relative w-full max-w-80">
-        <img src="/images/grid.png" alt="" className="w-full relative z-0" />
+        <img src="/tic-tac-toe-online/images/grid.png" alt="" className="w-full relative z-0" />
         <div className="absolute z-10 top-0 left-0 w-full h-full grid grid-cols-3 grid-rows-3 gap-[6.4453125%]">
           {board.map((cell, index) => (
             <BoardCell key={index} {...{ cell, index }} />

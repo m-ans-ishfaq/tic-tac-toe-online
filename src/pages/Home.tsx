@@ -39,7 +39,7 @@ export default function Home() {
   return (
     <Layout>
       <Title text="Tic Tac Toe Online" />
-      <img src="/images/tic-tac-toe.png" alt="Tic Tac Toe" className="w-80" />
+      <img src="/tic-tac-toe-online/images/tic-tac-toe.png" alt="Tic Tac Toe" className="w-80" />
       <div className="max-w-lg w-full grid grid-cols-1 sm:grid-cols-3 gap-4">
         <button
           onClick={createRoomHandler}
