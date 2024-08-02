@@ -11,5 +11,5 @@ export enum GamePhase {
   ROOM_NOT_FOUND,
   TIE,
   PLAYER_1_WIN,
-  PLAYER_2_WIN
+  PLAYER_2_WIN,
 }

@@ -1,1 +1,1 @@
-export const popAudio = new Audio("/audios/pop.wav");
+export const popAudio = new Audio('/audios/pop.wav');

@@ -6,8 +6,8 @@ import { GameStateProvider } from './hooks/useGameState.tsx';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   // <React.StrictMode>
-    <GameStateProvider>
-      <App />
-    </GameStateProvider>
+  <GameStateProvider>
+    <App />
+  </GameStateProvider>
   // </React.StrictMode>
 );
